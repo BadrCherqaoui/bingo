@@ -4,31 +4,25 @@ import json
 import string
 import csv
 
-# ===== DATA =====
 df = pd.read_csv("../data/anecdote.csv", sep=",")
 
 anecdotes = df["Anecdote"].dropna().tolist()
-noms = df["Nom"].dropna().tolist()
 
-# ===== CONFIG =====
-N_GRIDS_TOTAL = 40
-N_ANON = N_GRIDS_TOTAL - len(noms)  # nombre de grilles sans nom
+# IMPORTANT : liste UNIQUE des personnes
+noms = df["Nom"].dropna().unique().tolist()
 
 def gen_code():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
 
 grids = {}
 users = []
-anon_users = []
 
-# ===== 1. Grilles avec noms =====
-for _ in range(N_GRIDS_TOTAL - N_ANON):
+# ===== 1. 1 code par personne =====
+for name in noms:
 
     code = gen_code()
     while code in grids:
         code = gen_code()
-
-    name = random.choice(noms)
 
     grids[code] = {
         "name": name,
@@ -40,8 +34,8 @@ for _ in range(N_GRIDS_TOTAL - N_ANON):
         "code": code
     })
 
-# ===== 2. Grilles anonymes =====
-for i in range(N_ANON):
+# ===== 2. (optionnel) grilles anonymes =====
+for i in range(40 - len(noms)):
 
     code = gen_code()
     while code in grids:
@@ -54,25 +48,19 @@ for i in range(N_ANON):
         "grid": random.sample(anecdotes, 16)
     }
 
-    anon_users.append({
+    users.append({
         "name": name,
         "code": code
     })
 
-# ===== SAVE GRID JSON =====
+# ===== SAVE JSON =====
 with open("../data/grid.json", "w", encoding="utf-8") as f:
     json.dump(grids, f, ensure_ascii=False, indent=2)
 
-# ===== SAVE USERS =====
+# ===== SAVE CSV =====
 with open("../data/users.csv", "w", newline="", encoding="utf-8") as f:
     writer = csv.DictWriter(f, fieldnames=["name", "code"])
     writer.writeheader()
     writer.writerows(users)
 
-# ===== SAVE ANON USERS =====
-with open("../data/authors_codes.csv", "w", newline="", encoding="utf-8") as f:
-    writer = csv.DictWriter(f, fieldnames=["name", "code"])
-    writer.writeheader()
-    writer.writerows(anon_users)
-
-print("OK total:", len(grids))
+print("OK :", len(users))
