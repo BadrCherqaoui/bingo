@@ -8,6 +8,7 @@ app = Flask(__name__)
 with open("data/grid.json", "r", encoding="utf-8") as f:
     GRIDS = json.load(f)
 
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -16,12 +17,17 @@ def home():
 def grid():
     code = request.form["code"].strip().upper()
 
-    grid = GRIDS.get(code)
+    data = GRIDS.get(code)
 
-    if not grid:
+    if not data:
         return "Code invalide"
 
-    return render_template("grid.html", grid=grid, code=code)
+    return render_template(
+        "grid.html",
+        grid=data["grid"],
+        code=code,
+        name=data["name"]
+    )
 
 
 if __name__ == "__main__":
